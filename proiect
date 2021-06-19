@@ -1,0 +1,52 @@
+import sys
+import RPi.GPIO as GPIO
+import time
+import smtplib
+
+GPIO.setmode(GPIO.BCM)
+
+buzzer = 23
+trig = 3
+echo = 4
+GPIO.setwarnings(False)
+
+GPIO.setup(2,GPIO.OUT)
+GPIO.output(2,0)
+
+GPIO.setup(buzzer,GPIO.OUT)
+GPIO.setup(trig,GPIO.OUT)
+GPIO.setup(echo,GPIO.IN)
+
+GPIO.output(trig, False)
+time.sleep(0.5)
+
+while True:
+        GPIO.output(trig, True)
+        time.sleep(0.00001)
+        GPIO.output(trig, False)
+
+        while GPIO.input(echo)==0:
+          pulse_start = time.time()
+
+        while GPIO.input(echo)==1:
+         pulse_end = time.time()
+
+        pulse_duration = pulse_end - pulse_start
+        distance = pulse_duration * 17150
+        distance = round(distance, 2)
+        print("Distance:",distance,"cm")
+
+        if distance <= 15:
+                GPIO.output(buzzer,GPIO.HIGH)
+                server=smtplib.SMTP('smtp.gmail.com',587)
+                server.starttls()
+                server.login("proiect.smlab","SMlab12345")
+                msg="A trecut cineva pe langa sensor"
+                server.sendmail("proiect.smlab@gmail.com","proiect.smlab@gmail.com",msg)
+                server.quit()
+                time.sleep(0.5)
+        else:
+                GPIO.output(buzzer,GPIO.LOW)
+                time.sleep(0.5)
+GPIO.cleanup()
+sys.exit()
